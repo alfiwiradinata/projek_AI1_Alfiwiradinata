@@ -1,0 +1,315 @@
+/* =========================
+   BODY
+========================= */
+
+body{
+  margin:0;
+  font-family:'Segoe UI', sans-serif;
+  background:#0b0f19;
+  overflow:hidden;
+}
+
+
+
+/* =========================
+   HEADER
+========================= */
+
+h1{
+  margin:0;
+  padding:22px;
+  text-align:center;
+  color:white;
+
+  background:linear-gradient(
+    90deg,
+    #001f3f,
+    #003366,
+    #0055aa,
+    #001f3f
+  );
+
+  font-size:32px;
+  letter-spacing:1px;
+
+  box-shadow:
+    0 4px 15px rgba(0,0,0,0.5);
+}
+
+
+
+/* =========================
+   LAYOUT
+========================= */
+
+.container{
+  display:flex;
+  height:calc(100vh - 80px);
+}
+
+
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar{
+
+  width:370px;
+
+  background:linear-gradient(
+    180deg,
+    #0f172a,
+    #111827,
+    #000000
+  );
+
+  padding:25px;
+
+  overflow-y:auto;
+
+  border-right:2px solid #0ea5e9;
+
+  box-shadow:
+    5px 0 20px rgba(0,0,0,0.6);
+
+}
+
+
+
+/* JUDUL SIDEBAR */
+
+.sidebar h2{
+
+  margin-top:0;
+
+  text-align:center;
+
+  color:#38bdf8;
+
+  font-size:28px;
+
+  margin-bottom:25px;
+
+}
+
+
+
+/* LABEL */
+
+.sidebar label{
+
+  display:block;
+
+  margin-bottom:8px;
+
+  margin-top:18px;
+
+  color:#cbd5e1;
+
+  font-size:15px;
+
+  font-weight:bold;
+
+}
+
+
+
+/* SELECT */
+
+.sidebar select{
+
+  width:100%;
+
+  padding:14px;
+
+  border:none;
+
+  border-radius:12px;
+
+  background:#1e293b;
+
+  color:white;
+
+  font-size:15px;
+
+  outline:none;
+
+  transition:0.3s;
+
+  box-shadow:
+    inset 0 0 5px rgba(255,255,255,0.1);
+
+}
+
+
+
+/* EFEK HOVER */
+
+.sidebar select:hover{
+
+  background:#334155;
+
+}
+
+
+
+/* BUTTON */
+
+.sidebar button{
+
+  width:100%;
+
+  padding:15px;
+
+  margin-top:25px;
+
+  border:none;
+
+  border-radius:15px;
+
+  cursor:pointer;
+
+  font-size:18px;
+
+  font-weight:bold;
+
+  color:white;
+
+  background:linear-gradient(
+    90deg,
+    #0284c7,
+    #2563eb,
+    #0ea5e9
+  );
+
+  transition:0.3s;
+
+  box-shadow:
+    0 5px 20px rgba(14,165,233,0.5);
+
+}
+
+
+
+/* BUTTON HOVER */
+
+.sidebar button:hover{
+
+  transform:scale(1.03);
+
+  background:linear-gradient(
+    90deg,
+    #0ea5e9,
+    #3b82f6,
+    #60a5fa
+  );
+
+}
+
+
+
+/* =========================
+   HASIL PANEL
+========================= */
+
+#hasil{
+
+  margin-top:25px;
+
+  padding:20px;
+
+  border-radius:18px;
+
+  background:linear-gradient(
+    180deg,
+    rgba(15,23,42,0.95),
+    rgba(30,41,59,0.95)
+  );
+
+  border:1px solid #38bdf8;
+
+  color:white;
+
+  line-height:30px;
+
+  box-shadow:
+    0 0 20px rgba(14,165,233,0.3);
+
+}
+
+
+
+/* JUDUL HASIL */
+
+#hasil h3{
+
+  margin-top:0;
+
+  text-align:center;
+
+  color:#38bdf8;
+
+  font-size:24px;
+
+}
+
+
+
+/* =========================
+   MAP
+========================= */
+
+#map{
+
+  flex:1;
+
+  height:100%;
+
+}
+
+
+
+/* =========================
+   LEAFLET CUSTOM
+========================= */
+
+.leaflet-routing-container{
+  display:none;
+}
+
+
+
+/* ZOOM BUTTON */
+
+.leaflet-control-zoom a{
+
+  background:#111827 !important;
+
+  color:white !important;
+
+  border:none !important;
+
+}
+
+
+
+/* POPUP */
+
+.leaflet-popup-content-wrapper{
+
+  background:#111827;
+
+  color:white;
+
+  border-radius:10px;
+
+}
+
+
+
+.leaflet-popup-tip{
+
+  background:#111827;
+
+}

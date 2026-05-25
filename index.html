@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Shortest Path Universitas Bengkulu</title>
+
+  <!-- LEAFLET -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
+
+  <!-- LEAFLET ROUTING -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+  />
+
+  <!-- FONT AWESOME -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  />
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      font-family:Arial, sans-serif;
+      background:
+      linear-gradient(
+        135deg,
+        #000814,
+        #001d3d,
+        #003566
+      );
+      overflow:hidden;
+    }
+
+    h1{
+      height:70px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      background:
+      linear-gradient(
+        to right,
+        #001f3f,
+        #00509d
+      );
+
+      font-size:28px;
+      letter-spacing:1px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .container{
+      display:flex;
+      height:calc(100vh - 70px);
+    }
+
+    /* SIDEBAR */
+
+    .sidebar{
+      width:360px;
+      padding:25px;
+
+      background:
+      linear-gradient(
+        180deg,
+        rgba(0,0,0,0.95),
+        rgba(0,20,40,0.95)
+      );
+
+      color:white;
+
+      overflow-y:auto;
+
+      border-right:2px solid #00bfff;
+
+      box-shadow:5px 0 20px rgba(0,0,0,0.5);
+    }
+
+    .sidebar h2{
+      text-align:center;
+      color:#00bfff;
+      margin-bottom:25px;
+      font-size:26px;
+    }
+
+    .sidebar label{
+      display:block;
+      margin-top:15px;
+      margin-bottom:8px;
+      color:#cceeff;
+      font-weight:bold;
+    }
+
+    .sidebar select{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      outline:none;
+      background:#eaf6ff;
+      font-size:15px;
+    }
+
+    .sidebar button{
+      width:100%;
+      margin-top:25px;
+      padding:15px;
+      border:none;
+      border-radius:12px;
+
+      background:
+      linear-gradient(
+        to right,
+        #00bfff,
+        #0066ff
+      );
+
+      color:white;
+      font-size:18px;
+      font-weight:bold;
+      cursor:pointer;
+
+      transition:0.3s;
+    }
+
+    .sidebar button:hover{
+      transform:scale(1.03);
+      box-shadow:0 0 20px #00bfff;
+    }
+
+    #hasil{
+      margin-top:25px;
+
+      background:
+      rgba(255,255,255,0.08);
+
+      border:1px solid rgba(255,255,255,0.2);
+
+      border-radius:15px;
+
+      padding:20px;
+
+      line-height:28px;
+
+      color:white;
+
+      backdrop-filter:blur(5px);
+    }
+
+    #hasil h3{
+      color:#00bfff;
+      margin-bottom:15px;
+    }
+
+    /* MAP */
+
+    #map{
+      flex:1;
+      height:100%;
+    }
+
+    /* POPUP */
+
+    .leaflet-popup-content-wrapper{
+      background:#001d3d;
+      color:white;
+      border-radius:15px;
+    }
+
+    .leaflet-popup-tip{
+      background:#001d3d;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <h1>
+    Sistem Shortest Path Universitas Bengkulu
+  </h1>
+
+  <div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <h2>
+        <i class="fa-solid fa-route"></i>
+        Navigasi Kampus
+      </h2>
+
+      <!-- START -->
+      <label>Lokasi Awal</label>
+      <select id="start"></select>
+
+      <!-- END -->
+      <label>Lokasi Tujuan</label>
+      <select id="end"></select>
+
+      <!-- VEHICLE -->
+      <label>Kendaraan</label>
+
+      <select id="vehicle">
+
+        <option value="jalan">
+          Jalan Kaki
+        </option>
+
+        <option value="motor">
+          Motor
+        </option>
+
+        <option value="mobil">
+          Mobil
+        </option>
+
+      </select>
+
+      <!-- BUTTON -->
+      <button onclick="cariRute()">
+
+        <i class="fa-solid fa-location-arrow"></i>
+        Cari Rute
+
+      </button>
+
+      <!-- HASIL -->
+      <div id="hasil">
+
+        Pilih lokasi awal dan tujuan
+
+      </div>
+
+    </div>
+
+    <!-- MAP -->
+    <div id="map"></div>
+
+  </div>
+
+  <!-- LEAFLET -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- ROUTING -->
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+  <script>
+
+    // =========================
+    // DATA LOKASI
+    // =========================
+
+    const locations = {
+
+      "Fakultas Hukum":
+      [-3.760442987245878, 102.26844886521758],
+
+      "Fakultas Ekonomi dan Bisnis":
+      [-3.7614814430694334, 102.26864198426055],
+
+      "Fakultas Teknik":
+      [-3.758929492631989, 102.27689654012363],
+
+      "Fakultas Pertanian":
+      [-3.7592778099619117, 102.2692581517457],
+
+      "FKIP":
+      [-3.757282741561131, 102.27509518133793],
+
+      "FMIPA":
+      [-3.755848166488809, 102.27477331626528],
+
+      "FISIP":
+      [-3.758822667669284, 102.27425391613725],
+
+      "Fakultas Kedokteran":
+      [-3.75502588597547, 102.27799786526268],
+
+      "Rektorat UNIB":
+      [-3.758811987117804, 102.27231461338441],
+
+      "Perpustakaan UNIB":
+      [-3.7567150786077734, 102.27485998640478],
+
+      "UPA TIK Universitas Bengkulu":
+      [-3.758274673242248, 102.2750311305906],
+
+      "Masjid Darul Ulum":
+      [-3.7573017947624465, 102.2676227967586],
+
+      "Danau UNIB":
+      [-3.758276767484724, 102.27315761526006],
+
+      "Stadion UNIB":
+      [-3.757395959575688, 102.27813792376573]
+
+    };
+
+
+
+    // =========================
+    // MEMBUAT MAP
+    // =========================
+
+    const map = L.map('map').setView(
+      [-3.7585, 102.2745],
+      16
+    );
+
+
+
+    // =========================
+    // TILE MAP
+    // =========================
+
+    L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {
+        attribution: '© OpenStreetMap'
+      }
+    ).addTo(map);
+
+
+
+    // =========================
+    // DROPDOWN
+    // =========================
+
+    const startSelect =
+      document.getElementById("start");
+
+    const endSelect =
+      document.getElementById("end");
+
+
+
+    // =========================
+    // ICON REALISTIS
+    // =========================
+
+    function getIcon(place){
+
+      let iconClass = "fa-location-dot";
+
+      // Fakultas
+      if(place.includes("Fakultas")){
+
+        iconClass = "fa-building";
+
+      }
+
+      // Perpustakaan
+      else if(place.includes("Perpustakaan")){
+
+        iconClass = "fa-book";
+
+      }
+
+      // Masjid
+      else if(place.includes("Masjid")){
+
+        iconClass = "fa-mosque";
+
+      }
+
+      // Stadion
+      else if(place.includes("Stadion")){
+
+        iconClass = "fa-futbol";
+
+      }
+
+      // Danau
+      else if(place.includes("Danau")){
+
+        iconClass = "fa-water";
+
+      }
+
+      // Rektorat
+      else if(place.includes("Rektorat")){
+
+        iconClass = "fa-landmark";
+
+      }
+
+      // UPA
+      else if(place.includes("UPA")){
+
+        iconClass = "fa-computer";
+
+      }
+
+
+
+      return L.divIcon({
+
+        className:"",
+
+        html:`
+
+          <div style="
+            width:45px;
+            height:45px;
+            background:#ff0000;
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            border:3px solid white;
+            box-shadow:
+              0 5px 15px rgba(0,0,0,0.5);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+          ">
+
+            <i class="fa-solid ${iconClass}"
+            style="
+              color:black;
+              font-size:18px;
+              transform:rotate(45deg);
+            "></i>
+
+          </div>
+
+        `,
+
+        iconSize:[45,45],
+
+        iconAnchor:[22,45],
+
+        popupAnchor:[0,-40]
+
+      });
+
+    }
+
+
+
+    // =========================
+    // ARRAY MARKER
+    // =========================
+
+    let allMarkers = [];
+
+
+
+    // =========================
+    // MASUKKAN LOKASI
+    // =========================
+
+    for(let place in locations){
+
+      // START
+      let option1 =
+        document.createElement("option");
+
+      option1.value = place;
+      option1.text = place;
+
+      startSelect.appendChild(option1);
+
+
+
+      // END
+      let option2 =
+        document.createElement("option");
+
+      option2.value = place;
+      option2.text = place;
+
+      endSelect.appendChild(option2);
+
+
+
+      // MARKER
+      const marker = L.marker(
+
+        locations[place],
+        {
+          icon:getIcon(place)
+        }
+
+      )
+      .addTo(map)
+      .bindPopup(
+        "<b>" + place + "</b>"
+      );
+
+      allMarkers.push(marker);
+
+    }
+
+
+
+    // =========================
+    // GRAPH DIJKSTRA
+    // =========================
+
+    const graph = {
+
+      "Fakultas Hukum": {
+        "Fakultas Ekonomi dan Bisnis": 0.2,
+        "Fakultas Pertanian": 0.4
+      },
+
+      "Fakultas Ekonomi dan Bisnis": {
+        "Fakultas Hukum": 0.2,
+        "Fakultas Teknik": 1.0
+      },
+
+      "Fakultas Teknik": {
+        "Fakultas Ekonomi dan Bisnis": 1.0,
+        "FKIP": 0.5
+      },
+
+      "FKIP": {
+        "Fakultas Teknik": 0.5,
+        "FMIPA": 0.3
+      },
+
+      "FMIPA": {
+        "FKIP": 0.3,
+        "FISIP": 0.4
+      },
+
+      "FISIP": {
+        "FMIPA": 0.4,
+        "Fakultas Kedokteran": 0.5
+      },
+
+      "Fakultas Kedokteran": {
+        "FISIP": 0.5
+      }
+
+    };
+
+
+
+    // =========================
+    // ALGORITMA DIJKSTRA
+    // =========================
+
+    function dijkstra(graph, start, end){
+
+      let distances = {};
+      let visited = {};
+      let previous = {};
+
+      for(let node in graph){
+
+        distances[node] = Infinity;
+        previous[node] = null;
+
+      }
+
+      distances[start] = 0;
+
+      while(true){
+
+        let closestNode = null;
+
+        for(let node in distances){
+
+          if(
+            !visited[node] &&
+            (
+              closestNode === null ||
+              distances[node] < distances[closestNode]
+            )
+          ){
+
+            closestNode = node;
+
+          }
+
+        }
+
+        if(closestNode === null) break;
+
+        if(closestNode === end) break;
+
+        visited[closestNode] = true;
+
+        for(let neighbor in graph[closestNode]){
+
+          let newDistance =
+            distances[closestNode] +
+            graph[closestNode][neighbor];
+
+          if(newDistance < distances[neighbor]){
+
+            distances[neighbor] = newDistance;
+            previous[neighbor] = closestNode;
+
+          }
+
+        }
+
+      }
+
+      let path = [];
+      let current = end;
+
+      while(current){
+
+        path.unshift(current);
+        current = previous[current];
+
+      }
+
+      return {
+
+        distance: distances[end],
+        path: path
+
+      };
+
+    }
+
+
+
+    // =========================
+    // VARIABLE ROUTE
+    // =========================
+
+    let control = null;
+
+    let startMarker = null;
+
+    let endMarker = null;
+
+
+
+    // =========================
+    // FUNCTION CARI RUTE
+    // =========================
+
+    function cariRute(){
+
+      const start =
+        document.getElementById("start").value;
+
+      const end =
+        document.getElementById("end").value;
+
+      const vehicle =
+        document.getElementById("vehicle").value;
+
+
+
+      // DIJKSTRA
+      const hasilDijkstra =
+        dijkstra(graph, start, end);
+
+
+
+      // HAPUS ROUTE LAMA
+      if(control !== null){
+
+        map.removeControl(control);
+
+      }
+
+
+
+      // HAPUS MARKER LAMA
+      allMarkers.forEach(marker => {
+
+        map.removeLayer(marker);
+
+      });
+
+
+
+      // HAPUS START END LAMA
+      if(startMarker){
+
+        map.removeLayer(startMarker);
+
+      }
+
+      if(endMarker){
+
+        map.removeLayer(endMarker);
+
+      }
+
+
+
+      // ICON START
+      const startIcon = L.divIcon({
+
+        className:"",
+
+        html:`
+
+          <div style="
+            width:50px;
+            height:50px;
+            background:#00cc44;
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            border:4px solid white;
+            box-shadow:
+              0 5px 15px rgba(0,0,0,0.5);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+          ">
+
+            <i class="fa-solid fa-location-dot"
+            style="
+              color:white;
+              font-size:22px;
+              transform:rotate(45deg);
+            "></i>
+
+          </div>
+
+        `,
+
+        iconSize:[50,50],
+
+        iconAnchor:[25,50]
+
+      });
+
+
+
+      // ICON END
+      const endIcon = L.divIcon({
+
+        className:"",
+
+        html:`
+
+          <div style="
+            width:50px;
+            height:50px;
+            background:#ff0000;
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            border:4px solid white;
+            box-shadow:
+              0 5px 15px rgba(0,0,0,0.5);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+          ">
+
+            <i class="fa-solid fa-flag-checkered"
+            style="
+              color:white;
+              font-size:20px;
+              transform:rotate(45deg);
+            "></i>
+
+          </div>
+
+        `,
+
+        iconSize:[50,50],
+
+        iconAnchor:[25,50]
+
+      });
+
+
+
+      // MARKER START
+      startMarker = L.marker(
+
+        locations[start],
+        {
+          icon:startIcon
+        }
+
+      )
+      .addTo(map)
+      .bindPopup(
+        "<b>Lokasi Awal:</b><br>" + start
+      );
+
+
+
+      // MARKER END
+      endMarker = L.marker(
+
+        locations[end],
+        {
+          icon:endIcon
+        }
+
+      )
+      .addTo(map)
+      .bindPopup(
+        "<b>Lokasi Tujuan:</b><br>" + end
+      );
+
+
+
+      // ROUTING
+      control = L.Routing.control({
+
+        waypoints:[
+
+          L.latLng(locations[start]),
+          L.latLng(locations[end])
+
+        ],
+
+        routeWhileDragging:false,
+
+        draggableWaypoints:false,
+
+        addWaypoints:false,
+
+        show:false,
+
+        createMarker:function(){
+
+          return null;
+
+        },
+
+        lineOptions:{
+
+          styles:[
+            {
+              color:'#00bfff',
+              opacity:0.9,
+              weight:7
+            }
+          ]
+
+        }
+
+      }).addTo(map);
+
+
+
+
+      // =========================
+      // ROUTE DITEMUKAN
+      // =========================
+
+      control.on('routesfound', function(e){
+
+        const routes = e.routes[0];
+
+
+
+        // JARAK
+        const distance =
+          (routes.summary.totalDistance / 1000)
+          .toFixed(2);
+
+
+
+        // KENDARAAN
+        let speed = 5;
+        let kendaraan = "Jalan Kaki";
+
+
+
+        if(vehicle === "jalan"){
+
+          speed = 5;
+          kendaraan = "Jalan Kaki";
+
+        }
+
+        else if(vehicle === "motor"){
+
+          speed = 30;
+          kendaraan = "Motor";
+
+        }
+
+        else if(vehicle === "mobil"){
+
+          speed = 20;
+          kendaraan = "Mobil";
+
+        }
+
+
+
+        // WAKTU
+        const time =
+          ((distance / speed) * 60)
+          .toFixed(1);
+
+
+
+        // HASIL
+        document.getElementById("hasil").innerHTML =
+
+        `
+        <h3>
+          <i class="fa-solid fa-map-location-dot"></i>
+          Hasil Shortest Path
+        </h3>
+
+        <b>Lokasi Awal:</b><br>
+        ${start}
+        <br><br>
+
+        <b>Lokasi Tujuan:</b><br>
+        ${end}
+        <br><br>
+
+        <b>Kendaraan:</b><br>
+        ${kendaraan}
+        <br><br>
+
+        <b>Jalur Dijkstra:</b><br>
+        ${hasilDijkstra.path.join(" → ")}
+        <br><br>
+
+        <b>Total Jarak:</b><br>
+        ${distance} KM
+        <br><br>
+
+        <b>Estimasi Waktu:</b><br>
+        ${time} Menit
+        <br><br>
+
+        <b>Algoritma:</b><br>
+        Dijkstra Algorithm
+        `;
+
+      });
+
+    }
+
+  </script>
+
+</body>
+</html>
